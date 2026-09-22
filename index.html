@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generator Prompt AKM/PISA & Infografis</title>
+    <title>Generator Prompt Asesmen & Infografis</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -69,6 +69,7 @@
                 <button onclick="switchTab('web')" id="tab-web" class="flex-1 py-2 px-2 text-[11px] md:text-sm font-bold rounded-lg bg-white text-indigo-700 shadow-sm transition-all whitespace-nowrap">🌐 LitNum (Web)</button>
                 <button onclick="switchTab('print')" id="tab-print" class="flex-1 py-2 px-2 text-[11px] md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition-all whitespace-nowrap">📄 LitNum (Cetak)</button>
                 <button onclick="switchTab('image')" id="tab-image" class="flex-1 py-2 px-2 text-[11px] md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition-all whitespace-nowrap">🎨 Infografis (AI)</button>
+                <button onclick="switchTab('vision')" id="tab-vision" class="flex-1 py-2 px-2 text-[11px] md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition-all whitespace-nowrap">📸 Analisis Gambar</button>
             </div>
 
             <form id="prompt-form" class="space-y-6">
@@ -242,6 +243,66 @@
                     </div>
                 </div>
 
+                <!-- Analisis Gambar (VISION) -->
+                <div id="section-vision" class="bg-teal-50 p-5 rounded-2xl border border-teal-200 hidden">
+                    <h3 class="text-sm font-black text-teal-700 uppercase mb-4 tracking-wide">3. Ekstraksi Gambar (VQA)</h3>
+                    <p class="text-xs text-teal-800 mb-4 bg-teal-100 p-2.5 rounded-lg font-semibold border border-teal-200">
+                        ⚠️ <span class="font-bold">Penting:</span> Unggah file gambar/dokumen Anda (Attachment) bersamaan dengan prompt ini ke jendela chat AI (Gemini/ChatGPT/Claude).
+                    </p>
+                    
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold text-slate-600 mb-2">Fokus Soal</label>
+                        <select id="vision-focus" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none text-sm bg-white font-medium">
+                            <option value="Kombinasi Literasi & Numerasi">Kombinasi Literasi & Numerasi</option>
+                            <option value="Literasi Membaca">Hanya Literasi Membaca</option>
+                            <option value="Numerasi">Hanya Numerasi</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-teal-200 shadow-sm mb-4">
+                        <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-3">Rincian Jenis Soal <span class="text-teal-600">(1 - 4 Soal per tipe)</span></p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Pilihan Ganda Biasa</label>
+                                <div class="flex items-center border border-slate-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-teal-500 shadow-sm">
+                                    <button type="button" onclick="adjustVal('v-jmlPG', -1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">-</button>
+                                    <input type="number" id="v-jmlPG" value="2" class="flex-1 w-full h-10 text-center text-sm font-bold text-slate-800 outline-none pointer-events-none bg-white" readonly>
+                                    <button type="button" onclick="adjustVal('v-jmlPG', 1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Pilihan Ganda Kompleks</label>
+                                <div class="flex items-center border border-slate-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-teal-500 shadow-sm">
+                                    <button type="button" onclick="adjustVal('v-jmlPGK', -1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">-</button>
+                                    <input type="number" id="v-jmlPGK" value="1" class="flex-1 w-full h-10 text-center text-sm font-bold text-slate-800 outline-none pointer-events-none bg-white" readonly>
+                                    <button type="button" onclick="adjustVal('v-jmlPGK', 1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Benar - Salah</label>
+                                <div class="flex items-center border border-slate-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-teal-500 shadow-sm">
+                                    <button type="button" onclick="adjustVal('v-jmlBS', -1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">-</button>
+                                    <input type="number" id="v-jmlBS" value="1" class="flex-1 w-full h-10 text-center text-sm font-bold text-slate-800 outline-none pointer-events-none bg-white" readonly>
+                                    <button type="button" onclick="adjustVal('v-jmlBS', 1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Menjodohkan</label>
+                                <div class="flex items-center border border-slate-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-teal-500 shadow-sm">
+                                    <button type="button" onclick="adjustVal('v-jmlMatch', -1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">-</button>
+                                    <input type="number" id="v-jmlMatch" value="1" class="flex-1 w-full h-10 text-center text-sm font-bold text-slate-800 outline-none pointer-events-none bg-white" readonly>
+                                    <button type="button" onclick="adjustVal('v-jmlMatch', 1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-2">Instruksi Area Gambar (Opsional)</label>
+                        <textarea id="vision-note" rows="2" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none text-sm font-medium resize-none" placeholder="Contoh: Buat soal berdasarkan diagram lingkaran di pojok kanan atas saja..."></textarea>
+                    </div>
+                </div>
+
             </form>
             <div class="h-8"></div>
         </div>
@@ -282,14 +343,18 @@
 
         function switchTab(mode) {
             currentMode = mode;
-            const tabs = ['web', 'print', 'image'];
-            const sections = ['web', 'print', 'image'];
+            const tabs = ['web', 'print', 'image', 'vision'];
+            const sections = ['web', 'print', 'image', 'vision'];
             
             // Atur styling Tab Buttons
             tabs.forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
                 if(t === mode) {
-                    btn.className = `flex-1 py-2 px-2 md:px-3 text-[11px] md:text-sm font-bold rounded-lg bg-white shadow-sm transition-all whitespace-nowrap ${mode==='image' ? 'text-amber-600' : 'text-indigo-700'}`;
+                    let activeColor = 'text-indigo-700';
+                    if(mode === 'image') activeColor = 'text-amber-600';
+                    if(mode === 'vision') activeColor = 'text-teal-700';
+                    
+                    btn.className = `flex-1 py-2 px-2 md:px-3 text-[11px] md:text-sm font-bold rounded-lg bg-white shadow-sm transition-all whitespace-nowrap ${activeColor}`;
                 } else {
                     btn.className = "flex-1 py-2 px-2 md:px-3 text-[11px] md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition-all whitespace-nowrap";
                 }
@@ -304,9 +369,9 @@
                 }
             });
 
-            // Visibilitas Form Konteks Kedaerahan (Disembunyikan di mode Infografis agar lebih relevan)
+            // Visibilitas Form Konteks Kedaerahan (Disembunyikan di mode Infografis & Vision)
             const konteksContainer = document.getElementById('konteks-container');
-            if (mode === 'image') {
+            if (mode === 'image' || mode === 'vision') {
                 konteksContainer.classList.add('hidden');
             } else {
                 konteksContainer.classList.remove('hidden');
@@ -375,7 +440,7 @@
                 let jmlMatch = Math.min(Math.max(parseInt(document.getElementById('jmlMatch').value) || 1, 1), 4);
 
                 promptTemplate = `[ROLE & EXPERTISE]
-Bertindaklah sebagai Senior Full-Stack EdTech Developer sekaligus Spesialis Asesmen Pembelajaran Pusmendik (standar AKM/PISA). Tugas Anda adalah merancang aplikasi kuis web interaktif berbasis Single-File HTML yang ultra-responsif, efisien, dan siap pakai di perangkat Desktop maupun Mobile/Smartphone.
+Bertindaklah sebagai Senior Full-Stack EdTech Developer sekaligus Spesialis Asesmen Pembelajaran Pusmendik. Tugas Anda adalah merancang aplikasi kuis web interaktif berbasis Single-File HTML yang ultra-responsif, efisien, dan siap pakai di perangkat Desktop maupun Mobile/Smartphone.
 
 [TARGET AUDIENCE]
 Siswa Kelas ${kelas} ${jenjang} dengan level kognitif literasi dan numerasi L1 (Knowing), L2 (Applying), hingga L3 (Reasoning/HOTS).
@@ -418,16 +483,17 @@ Aplikasi harus dioptimalkan untuk Desktop (1024px+) dan Mobile (320px - 768px):
 [INTERACTION & JAVASCRIPT LOGIC]
 1. Data Architecture: Susun struktur data JavaScript dengan rapi. Kelompokkan soal berdasarkan \`stimulus_id\` (L1, L2, L3, N1, N2, N3).
 2. Sistem Pengacakan (Randomizer): Saat tombol "Mulai Ujian" diklik, fungsi JS secara OTOMATIS mengacak dan MEMILIH TEPAT 1 Klaster Stimulus Literasi dan TEPAT 1 Klaster Stimulus Numerasi. Siswa HANYA mengerjakan soal-soal dari 2 klaster terpilih tersebut.
-3. Mobile-Compatible Matching: Logika soal menjodohkan DILARANG menggunakan event HTML5 Drag-and-Drop. Gunakan logika "Click-to-Pair" (Klik item premis -> Item aktif/berwarna -> Klik item respon tujuan -> Pasangan terbentuk).
+3. Mobile-Compatible Matching: Logika soal menjodohkan DILARANG menggunakan event HTML5 Drag-and-Drop. Gunakan logika "Click-to-Pair" (Klik item premis -> Item aktif/berwarna -> Klik item respon tujuan -> Pasangan terbentuk). PASTIKAN fungsi klik dan pasangkan ini benar-benar berfungsi dengan baik di kode JavaScript yang Anda buat.
 4. State, Scoring, & Timer:
    - Simpan jawaban siswa dalam state JavaScript.
-   - Hitung total skor otomatis saat "Selesaikan Ujian" ditekan atau Timer Habis.
+   - PENTING (Auto-Submit): Aplikasi WAJIB otomatis memanggil fungsi pengiriman data ke Spreadsheet (submit) ketika Timer Habis ATAU ketika siswa menekan tombol "Selesaikan Ujian".
+   - Hitung total skor otomatis saat submit dijalankan.
    - Tandai jawaban benar (Hijau) dan salah (Merah).
 5. UI Toggle Logic: Tuliskan fungsi JavaScript yang *clean* untuk melakukan *toggle* pada navigasi dan stimulus.
 6. Integrasi Google Apps Script (Spreadsheet):
    - Buat variabel untuk melacak waktu mulai ujian (\`startTime\`) dan selesai ujian (\`timeTakenSeconds\`).
-   - Saat submit, buat fungsi asynchronous (\`fetch\`) mengirim POST request ke URL Web App GAS (\`const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';\`).
-   - Payload JSON yang dikirimkan WAJIB mencakup: \`id\`, \`created_at\`, \`playerName\`, \`playerSchool\`, \`score\`, \`level\`, \`gameTopic\`, \`timeTakenSeconds\`, \`gameType\`, \`game_id\`.
+   - Buat fungsi asynchronous (\`fetch\`) mengirim POST request ke URL Web App GAS (\`const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';\`).
+   - Payload JSON yang dikirimkan WAJIB mencakup: \`id\`, \`created_at\`, \`playerName\`, \`playerSchool\`, \`score\`, \`level\`, \`gameTopic\`, \`timeTakenSeconds\`, \`gameType\`, \`game_id\`. (Isi value gameTopic: "Asesmen Literasi & Numerasi", game_id: "AS-2026").
    - Gunakan opsi \`mode: 'no-cors'\` pada fetch API.
 
 [STRICT OUTPUT CONSTRAINTS]
@@ -446,7 +512,7 @@ Aplikasi harus dioptimalkan untuk Desktop (1024px+) dan Mobile (320px - 768px):
                 const halfStimulus = totalStimulus / 2;
                 const totalSoal = totalStimulus * soalPerStimulus;
 
-                promptTemplate = `Bertindaklah sebagai Ahli Evaluasi Pendidikan ${jenjang} dan Penulis Soal Standar AKM. Buatkan instrumen asesmen sumatif untuk mata pelajaran ${topik} Kelas ${kelas}.
+                promptTemplate = `Bertindaklah sebagai Ahli Evaluasi Pendidikan ${jenjang} dan Penulis Soal Standar Asesmen Nasional. Buatkan instrumen asesmen sumatif untuk mata pelajaran ${topik} Kelas ${kelas}.
 
 Instruksi Khusus Penyusunan:
 
@@ -465,7 +531,7 @@ Distribusikan level kognitif: L1 (Pemahaman), L2 (Aplikasi), dan L3 (Penalaran/H
 *Tuliskan tag [Bentuk Soal] dan [Level Kognitif] di samping setiap nomor soal.*
 
 4. FORMAT & OUTPUT:
-Sajikan dalam teks format Markdown rapi agar mudah disalin ke Google Forms. Sertakan "KUNCI JAWABAN & PEMBAHASAN EDUKATIF" di bagian akhir.`;
+Sajikan dalam format dokumen teks yang sangat rapi, berhierarki jelas, dan siap disalin-tempel (copy-paste) secara langsung ke Google Docs atau Microsoft Word untuk dicetak/dijadikan PDF. Tata letak spasi, indentasi penomoran, dan tata letak opsi jawaban (A, B, C, D) harus diformat agar langsung terlihat profesional sebagai Lembar Soal Cetak. Sertakan "KUNCI JAWABAN & PEMBAHASAN EDUKATIF" di bagian paling akhir dokumen.`;
             
             } else if (currentMode === 'image') {
                 const grade = `${jenjang} Kelas ${kelas}`;
@@ -507,6 +573,35 @@ Sajikan dalam teks format Markdown rapi agar mudah disalin ke Google Forms. Sert
                     if (elements) { promptTemplate += `Elemen wajib yang harus ada: ${elements}\n`; }
                     promptTemplate += `Gaya Desain: Layout edukasi profesional yang rapi, tipografi yang jelas dan mudah dibaca, palet warna yang harmonis, menggunakan ${styleId}. Pastikan teks pada gambar tertata baik dan proporsional dengan orientasi ${orientationId}.`;
                 }
+            
+            } else if (currentMode === 'vision') {
+                const visionFocus = document.getElementById('vision-focus').value;
+                const visionNote = document.getElementById('vision-note').value.trim();
+                
+                let vPG = Math.min(Math.max(parseInt(document.getElementById('v-jmlPG').value) || 1, 1), 4);
+                let vPGK = Math.min(Math.max(parseInt(document.getElementById('v-jmlPGK').value) || 1, 1), 4);
+                let vBS = Math.min(Math.max(parseInt(document.getElementById('v-jmlBS').value) || 1, 1), 4);
+                let vMatch = Math.min(Math.max(parseInt(document.getElementById('v-jmlMatch').value) || 1, 1), 4);
+
+                promptTemplate = `Bertindaklah sebagai Ahli Evaluasi Pendidikan dan Penulis Soal Standar Asesmen Nasional. Saya telah melampirkan sebuah gambar (foto/infografik/tabel/diagram).\n\n`;
+                promptTemplate += `Tugas Anda adalah menganalisis gambar terlampir secara mendalam dan membuatkan soal ${visionFocus} untuk mata pelajaran ${topik} tingkat ${jenjang} Kelas ${kelas}.\n\n`;
+                promptTemplate += `Syarat penyusunan soal:\n`;
+                promptTemplate += `1. KETERIKATAN GAMBAR: Semua butir soal HANYA boleh dan WAJIB bersumber dari data, teks, atau konteks visual yang terdapat pada gambar yang saya unggah.\n`;
+                
+                let counter = 2;
+                if (visionNote) {
+                    promptTemplate += `${counter}. INSTRUKSI KHUSUS AREA GAMBAR: ${visionNote}\n`;
+                    counter++;
+                }
+                
+                promptTemplate += `${counter}. STRUKTUR SOAL: Buatkan rincian soal sebagai berikut:\n`;
+                promptTemplate += `   - ${vPG} Soal Pilihan Ganda Biasa (1 jawaban benar).\n`;
+                promptTemplate += `   - ${vPGK} Soal Pilihan Ganda Kompleks (Pilih lebih dari 1 jawaban benar).\n`;
+                promptTemplate += `   - ${vBS} Soal Benar/Salah (Sajikan matriks pernyataan terkait gambar).\n`;
+                promptTemplate += `   - ${vMatch} Soal Menjodohkan (Hubungkan premis dan respons berdasarkan gambar).\n`;
+                
+                promptTemplate += `${counter+1}. LEVEL KOGNITIF: Distribusikan level kognitif L1 (menemukan info pada gambar), L2 (interpretasi data), dan L3 (evaluasi/penalaran HOTS).\n`;
+                promptTemplate += `${counter+2}. FORMAT: Susun dengan format rapi (siap salin-tempel ke Word). Sertakan "Kunci Jawaban & Pembahasan" yang menjelaskan secara spesifik bagian mana dari gambar tersebut yang menjadi bukti jawabannya.`;
             }
 
             document.getElementById('output-prompt').value = promptTemplate;
