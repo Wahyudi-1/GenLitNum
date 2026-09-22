@@ -498,7 +498,8 @@ Aplikasi harus dioptimalkan untuk Desktop (1024px+) dan Mobile (320px - 768px):
 
 [STRICT OUTPUT CONSTRAINTS]
 1. Hasilkan SATU FILE LENGKAP dari \`<!DOCTYPE html>\` hingga \`</html>\`.
-2. DILARANG menggunakan placeholder, elipsis (...), atau memotong isi bank soal. KETIGA STIMULUS LITERASI, KETIGA STIMULUS NUMERASI, BESERTA SELURUH SOALNYA HARUS DITULISKAN SECARA LENGKAP di dalam kode JavaScript.`;
+2. DILARANG menggunakan placeholder, elipsis (...), atau memotong isi bank soal. KETIGA STIMULUS LITERASI, KETIGA STIMULUS NUMERASI, BESERTA SELURUH SOALNYA HARUS DITULISKAN SECARA LENGKAP di dalam kode JavaScript.
+3. DILARANG KERAS menggunakan \`alert()\`, \`confirm()\`, atau \`prompt()\`. Karena aplikasi ini akan disematkan (embed) ke Google Sites, gunakan Modal/Popup kustom berbasis HTML/CSS/JS untuk segala bentuk konfirmasi (misal: konfirmasi kumpul jawaban) atau notifikasi.`;
             
             } else if (currentMode === 'print') {
                 let totalStimulus = parseInt(document.getElementById('print-stimulus').value) || 4;
