@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Prompt AKM/PISA & Infografis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Custom Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #10b981;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 50;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+        
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] { -moz-appearance: textfield; }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm z-10 flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-black text-xl shadow-inner">🤖</div>
+            <div>
+                <h1 class="font-extrabold text-slate-900 text-lg leading-tight">Prompt Generator</h1>
+                <p class="text-xs text-slate-500 font-semibold">Asesmen LitNum & Infografis AI</p>
+            </div>
+        </div>
+        <button onclick="triggerManualGenerate()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md flex items-center gap-2">
+            <span>⚡ Generate Prompt</span>
+        </button>
+    </header>
+
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        
+        <div class="w-full md:w-1/2 lg:w-5/12 bg-white border-r border-slate-200 overflow-y-auto hide-scrollbar p-4 md:p-6">
+            <h2 class="text-xl font-bold mb-4 text-slate-800 border-b pb-2">Parameter Generator</h2>
+            
+            <!-- Tab Menu -->
+            <div class="flex flex-wrap gap-1 p-1 bg-slate-100 rounded-xl mb-6 border border-slate-200">
+                <button onclick="switchTab('web')" id="tab-web" class="flex-1 py-2 px-2 text-[11px] md:text-sm font-bold rounded-lg bg-white text-indigo-700 shadow-sm transition-all whitespace-nowrap">🌐 LitNum (Web)</button>
+                <button onclick="switchTab('print')" id="tab-print" class="flex-1 py-2 px-2 text-[11px] md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition-all whitespace-nowrap">📄 LitNum (Cetak)</button>
+                <button onclick="switchTab('image')" id="tab-image" class="flex-1 py-2 px-2 text-[11px] md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition-all whitespace-nowrap">🎨 Infografis (AI)</button>
+            </div>
+
+            <form id="prompt-form" class="space-y-6">
+                
+                <!-- Target Audience (Shared) -->
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <h3 class="text-sm font-black text-indigo-700 uppercase mb-4 tracking-wide">1. Target Audience</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">Jenjang Pendidikan</label>
+                            <select id="jenjang" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white font-medium cursor-pointer">
+                                <option value="SD">SD (Sekolah Dasar)</option>
+                                <option value="SMP" selected>SMP (Sekolah Menengah Pertama)</option>
+                                <option value="SMA">SMA (Sekolah Menengah Atas)</option>
+                                <option value="SMK">SMK (Sekolah Menengah Kejuruan)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">Kelas Murid</label>
+                            <select id="kelas" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white font-medium cursor-pointer">
+                                <!-- Opsi kelas akan dimuat melalui JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Konten Materi (Shared) -->
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <h3 class="text-sm font-black text-indigo-700 uppercase mb-4 tracking-wide">2. Konteks & Materi</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">Topik Pelajaran (Mata Pelajaran)</label>
+                            <input type="text" id="topik" value="Bahasa Indonesia - Teks Laporan Hasil Observasi" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium" placeholder="Contoh: Matematika - Aritmatika, Biologi - Ekosistem">
+                        </div>
+                        <div id="konteks-container">
+                            <label class="block text-xs font-bold text-slate-600 mb-2">Tema / Konteks Kedaerahan</label>
+                            <textarea id="konteks" rows="2" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium resize-none" placeholder="Masukkan tema atau konteks daerah spesifik...">Bondowoso</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Struktur Soal & Waktu (WEB) -->
+                <div id="section-web" class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <h3 class="text-sm font-black text-indigo-700 uppercase mb-4 tracking-wide">3. Detail Soal & Waktu (Web)</h3>
+                    
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold text-slate-600 mb-2">Waktu Pengerjaan (Menit)</label>
+                        <input type="number" id="waktu" value="60" min="5" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium">
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-3">Jumlah Soal <span class="text-indigo-600">PER STIMULUS (1 - 4 Soal)</span></p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Pilihan Ganda Biasa</label>
+                                <div class="flex items-center border border-slate-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 shadow-sm">
+                                    <button type="button" onclick="adjustVal('jmlPG', -1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">-</button>
+                                    <input type="number" id="jmlPG" value="3" class="flex-1 w-full h-10 text-center text-sm font-bold text-slate-800 outline-none pointer-events-none bg-white" readonly>
+                                    <button type="button" onclick="adjustVal('jmlPG', 1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Pilihan Ganda Kompleks</label>
+                                <div class="flex items-center border border-slate-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 shadow-sm">
+                                    <button type="button" onclick="adjustVal('jmlPGK', -1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">-</button>
+                                    <input type="number" id="jmlPGK" value="2" class="flex-1 w-full h-10 text-center text-sm font-bold text-slate-800 outline-none pointer-events-none bg-white" readonly>
+                                    <button type="button" onclick="adjustVal('jmlPGK', 1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Benar - Salah</label>
+                                <div class="flex items-center border border-slate-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 shadow-sm">
+                                    <button type="button" onclick="adjustVal('jmlBS', -1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">-</button>
+                                    <input type="number" id="jmlBS" value="2" class="flex-1 w-full h-10 text-center text-sm font-bold text-slate-800 outline-none pointer-events-none bg-white" readonly>
+                                    <button type="button" onclick="adjustVal('jmlBS', 1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Menjodohkan</label>
+                                <div class="flex items-center border border-slate-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 shadow-sm">
+                                    <button type="button" onclick="adjustVal('jmlMatch', -1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">-</button>
+                                    <input type="number" id="jmlMatch" value="2" class="flex-1 w-full h-10 text-center text-sm font-bold text-slate-800 outline-none pointer-events-none bg-white" readonly>
+                                    <button type="button" onclick="adjustVal('jmlMatch', 1, 1, 4)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Struktur Soal (CETAK) -->
+                <div id="section-print" class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hidden">
+                    <h3 class="text-sm font-black text-indigo-700 uppercase mb-4 tracking-wide">3. Detail Stimulus & Soal (Cetak)</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">Jumlah Total Stimulus</label>
+                            <div class="flex items-center border border-slate-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 shadow-sm">
+                                <button type="button" onclick="adjustVal('print-stimulus', -1, 2, 6, 2)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">-</button>
+                                <input type="number" id="print-stimulus" value="4" class="flex-1 w-full h-10 text-center text-sm font-bold text-slate-800 outline-none pointer-events-none bg-white" readonly>
+                                <button type="button" onclick="adjustVal('print-stimulus', 1, 2, 6, 2)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">+</button>
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-2">Maksimal 6. Isi genap agar porsi seimbang.</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">Soal per Stimulus</label>
+                            <div class="flex items-center border border-slate-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 shadow-sm">
+                                <button type="button" onclick="adjustVal('print-soal', -1, 1, 10)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">-</button>
+                                <input type="number" id="print-soal" value="5" class="flex-1 w-full h-10 text-center text-sm font-bold text-slate-800 outline-none pointer-events-none bg-white" readonly>
+                                <button type="button" onclick="adjustVal('print-soal', 1, 1, 10)" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold transition-colors select-none flex items-center justify-center active:bg-slate-300">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Struktur Infografis (IMAGE) -->
+                <div id="section-image" class="bg-amber-50 p-5 rounded-2xl border border-amber-200 hidden">
+                    <h3 class="text-sm font-black text-amber-700 uppercase mb-4 tracking-wide">3. Desain Infografis (Nano Banana)</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">Fokus Edukasi</label>
+                            <select id="img-focus" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-white font-medium">
+                                <option value="Literasi Informasi">Literasi Informasi</option>
+                                <option value="Numerasi Informasi">Numerasi Informasi</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">Rasio & Orientasi</label>
+                            <select id="img-ratio" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-white font-medium">
+                                <option value="9:16">Potret Panjang (9:16) - Poster</option>
+                                <option value="3:4">Potret Standar (3:4)</option>
+                                <option value="1:1">Persegi (1:1) - Instagram</option>
+                                <option value="4:3">Lanskap Standar (4:3) - Presentasi</option>
+                                <option value="16:9">Lanskap Lebar (16:9) - Layar Penuh</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">Kepadatan Visual</label>
+                            <select id="img-density" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-white font-medium">
+                                <option value="Dominan Gambar (80% Visual, 20% Teks/Angka)">Dominan Gambar (Minim Teks)</option>
+                                <option value="Seimbang (50% Visual, 50% Teks/Angka)">Seimbang (Gambar & Teks)</option>
+                                <option value="Dominan Teks/Angka (70% Data/Teks, 30% Ikon Visual)">Dominan Teks (Minim Gambar)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">Gaya Visual (Style)</label>
+                            <select id="img-style" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-white font-medium">
+                                <option value="flat">Flat Vector Illustration</option>
+                                <option value="3d">3D Render Modern</option>
+                                <option value="watercolor">Watercolor / Cat Air</option>
+                                <option value="comic">Buku Komik (Interaktif)</option>
+                                <option value="minimalist">Minimalis (Bersih & Rapi)</option>
+                                <option value="pixel">Pixel Art (Retro)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-slate-600 mb-2">Bahasa Prompt Target</label>
+                        <select id="img-language" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-white font-medium">
+                            <option value="english">Bahasa Inggris (Direkomendasikan AI)</option>
+                            <option value="indonesian">Bahasa Indonesia</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-2">Elemen / Data Spesifik (Opsional)</label>
+                        <textarea id="img-elements" rows="2" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none text-sm font-medium resize-none" placeholder="Contoh: Masukkan grafik batang suhu bumi, atau karakter astronot."></textarea>
+                    </div>
+                </div>
+
+            </form>
+            <div class="h-8"></div>
+        </div>
+
+        <div class="w-full md:w-1/2 lg:w-7/12 bg-slate-100 p-4 md:p-6 flex flex-col h-full relative overflow-y-auto">
+            
+            <!-- Area Textarea Prompt -->
+            <div class="flex justify-between items-end mb-4 flex-shrink-0">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Hasil Prompt</h2>
+                    <p class="text-sm text-slate-500 font-medium">Salin teks di bawah ini ke ChatGPT, Claude, atau Gemini.</p>
+                </div>
+                <button onclick="copyPrompt()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-md flex items-center gap-2">
+                    📋 Salin
+                </button>
+            </div>
+            
+            <div id="prompt-container" class="flex-1 relative bg-slate-800 rounded-2xl shadow-inner border-4 border-slate-700 flex flex-col transition-colors duration-300 mb-6">
+                <!-- Mac-like Terminal Header -->
+                <div class="bg-slate-900 px-4 py-2 flex items-center border-b border-slate-700 rounded-t-xl gap-2 select-none">
+                    <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                    <span class="text-[11px] font-mono text-slate-400 ml-2 uppercase tracking-widest">prompt-output.txt</span>
+                </div>
+                <!-- Text Area -->
+                <textarea id="output-prompt" readonly class="flex-1 w-full h-full p-5 bg-transparent text-amber-50 font-mono text-[14px] leading-relaxed resize-none outline-none hide-scrollbar placeholder-slate-500" placeholder="Klik 'Generate Prompt' untuk melihat hasil..."></textarea>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Custom Toast -->
+    <div id="toast">Prompt berhasil disalin!</div>
+
+    <script>
+        let currentMode = 'web';
+
+        function switchTab(mode) {
+            currentMode = mode;
+            const tabs = ['web', 'print', 'image'];
+            const sections = ['web', 'print', 'image'];
+            
+            // Atur styling Tab Buttons
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if(t === mode) {
+                    btn.className = `flex-1 py-2 px-2 md:px-3 text-[11px] md:text-sm font-bold rounded-lg bg-white shadow-sm transition-all whitespace-nowrap ${mode==='image' ? 'text-amber-600' : 'text-indigo-700'}`;
+                } else {
+                    btn.className = "flex-1 py-2 px-2 md:px-3 text-[11px] md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition-all whitespace-nowrap";
+                }
+            });
+
+            // Atur Visibilitas Section Form
+            sections.forEach(s => {
+                const sec = document.getElementById(`section-${s}`);
+                if(sec) {
+                    if(s === mode) sec.classList.remove('hidden');
+                    else sec.classList.add('hidden');
+                }
+            });
+
+            // Visibilitas Form Konteks Kedaerahan (Disembunyikan di mode Infografis agar lebih relevan)
+            const konteksContainer = document.getElementById('konteks-container');
+            if (mode === 'image') {
+                konteksContainer.classList.add('hidden');
+            } else {
+                konteksContainer.classList.remove('hidden');
+            }
+
+            generatePrompt();
+        }
+
+        // Initial setup
+        window.onload = function() {
+            updateKelasOptions();
+            generatePrompt();
+        };
+
+        function updateKelasOptions() {
+            const jenjang = document.getElementById('jenjang').value;
+            const kelasSelect = document.getElementById('kelas');
+            const currentVal = kelasSelect.value;
+            
+            kelasSelect.innerHTML = ''; 
+
+            let min = 1, max = 6;
+            if (jenjang === 'SD') { min = 1; max = 6; }
+            else if (jenjang === 'SMP') { min = 7; max = 9; }
+            else if (jenjang === 'SMA') { min = 10; max = 12; }
+            else if (jenjang === 'SMK') { min = 10; max = 13; }
+
+            for (let i = min; i <= max; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.text = `Kelas ${i}`;
+                if (currentVal == i) {
+                    option.selected = true;
+                }
+                kelasSelect.appendChild(option);
+            }
+        }
+
+        function adjustVal(id, delta, min, max, step = 1) {
+            const input = document.getElementById(id);
+            let val = parseInt(input.value) || min;
+            val += (delta * step);
+            
+            if (val < min) val = min;
+            if (max !== null && val > max) val = max;
+            
+            input.value = val;
+            generatePrompt();
+        }
+
+        function generatePrompt() {
+            // Shared values
+            const jenjang = document.getElementById('jenjang').value;
+            const kelas = document.getElementById('kelas').value || "9";
+            const topik = document.getElementById('topik').value || "Mata Pelajaran Umum";
+            const konteks = document.getElementById('konteks').value || "Konteks daerah.";
+            
+            let promptTemplate = "";
+
+            if (currentMode === 'web') {
+                const waktu = parseInt(document.getElementById('waktu').value) || 60;
+                
+                let jmlPG = Math.min(Math.max(parseInt(document.getElementById('jmlPG').value) || 1, 1), 4);
+                let jmlPGK = Math.min(Math.max(parseInt(document.getElementById('jmlPGK').value) || 1, 1), 4);
+                let jmlBS = Math.min(Math.max(parseInt(document.getElementById('jmlBS').value) || 1, 1), 4);
+                let jmlMatch = Math.min(Math.max(parseInt(document.getElementById('jmlMatch').value) || 1, 1), 4);
+
+                promptTemplate = `[ROLE & EXPERTISE]
+Bertindaklah sebagai Senior Full-Stack EdTech Developer sekaligus Spesialis Asesmen Pembelajaran Pusmendik (standar AKM/PISA). Tugas Anda adalah merancang aplikasi kuis web interaktif berbasis Single-File HTML yang ultra-responsif, efisien, dan siap pakai di perangkat Desktop maupun Mobile/Smartphone.
+
+[TARGET AUDIENCE]
+Siswa Kelas ${kelas} ${jenjang} dengan level kognitif literasi dan numerasi L1 (Knowing), L2 (Applying), hingga L3 (Reasoning/HOTS).
+
+[PEDAGOGICAL STIMULUS]
+Rancang sistem BANK SOAL yang memiliki total 6 stimulus komprehensif (3 Literasi dan 3 Numerasi) dengan Topik Utama: "${topik}" dan Konteks Tema: "${konteks}".
+1. Tiga (3) Klaster Stimulus Literasi (Artikel Analitis):
+   - Stimulus L1: Wacana analitis pro-kontra terkait topik & konteks.
+   - Stimulus L2: Narasi observasi fenomena/budaya sosial terkait topik & konteks.
+   - Stimulus L3: Teks informasi/berita faktual terkait topik & konteks.
+2. Tiga (3) Klaster Stimulus Numerasi (Data Multidimensional):
+   - Stimulus N1: Tabel komparasi teknis/biaya/angka terkait topik.
+   - Stimulus N2: Persentase data statistik atau perkembangan grafik terkait topik.
+   - Stimulus N3: Pola perhitungan matematis/simulasi tarif terkait topik.
+
+[TASK & QUESTION SPECIFICATIONS]
+Susun total keseluruhan soal di dalam bank soal berdasarkan 6 klaster stimulus di atas dengan spesifikasi ketat:
+- Di dalam SETIAP klaster stimulus, WAJIB terdapat 4 variasi jenis soal ini:
+  1. ${jmlPG} Soal Pilihan Ganda Biasa (Single-choice / Radio).
+  2. ${jmlPGK} Soal Pilihan Ganda Kompleks (Multi-select / Checkbox - min. 2 jawaban benar).
+  3. ${jmlBS} Soal Benar / Salah (True/False matrix per pernyataan).
+  4. ${jmlMatch} Soal Menjodohkan (Matching items).
+- Setiap butir soal wajib menyertakan kunci jawaban dan teks pembahasan singkat namun logis berbasis data/teks stimulus.
+
+[RESPONSIVE UI/UX SPECIFICATIONS]
+Aplikasi harus dioptimalkan untuk Desktop (1024px+) dan Mobile (320px - 768px):
+1. Penggunaan CSS: Wajib memuat Tailwind CSS via CDN (<script src="https://cdn.tailwindcss.com"><\/script>) untuk memastikan antarmuka modern, hemat baris kode, dan responsif.
+2. Layout Desktop:
+   - Split-screen 2 kolom utama: Kolom kiri Stimulus (scroll independen), Kolom kanan Lembar Soal.
+   - Navigasi Soal (Collapsible): Buat palet nomor soal sebagai sidebar atau panel dropdown tersembunyi yang HANYA MUNCUL jika siswa mengklik tombol "☰ Navigasi Soal".
+3. Layout Mobile (Sangat Penting):
+   - Gunakan sistem Tab Bar atau Sticky Toggle Drawer ("Lihat Stimulus") di bagian atas/bawah agar siswa tidak perlu scroll panjang bolak-balik antara stimulus dan pertanyaan.
+   - Navigasi Soal Mobile: Tempatkan tombol "☰ Navigasi" yang akan memunculkan *Modal/Bottom Sheet* berisi deretan nomor soal. Modal ini otomatis tertutup (hide) begitu siswa memilih salah satu nomor.
+   - Tabel numerasi harus memiliki \`overflow-x-auto\`.
+4. Komponen Halaman:
+   - Screen 1 (Cover): Sediakan Form Identitas. Gunakan *Text Input* (wajib diketik manual, BUKAN dropdown) untuk input "Nama Lengkap" dan "Asal Sekolah / Kelas". Sertakan tombol "Mulai Ujian".
+   - Screen 2: Workspace Ujian (Lembar soal aktif, Tombol Toggle Stimulus, Tombol Toggle Navigasi, Prev/Next Button, dan tampilkan Countdown Timer Ujian selama ${waktu} Menit).
+   - Screen 3: Hasil Evaluasi (Skor Akhir, Analisis Benar/Salah, Penjelasan interaktif).
+
+[INTERACTION & JAVASCRIPT LOGIC]
+1. Data Architecture: Susun struktur data JavaScript dengan rapi. Kelompokkan soal berdasarkan \`stimulus_id\` (L1, L2, L3, N1, N2, N3).
+2. Sistem Pengacakan (Randomizer): Saat tombol "Mulai Ujian" diklik, fungsi JS secara OTOMATIS mengacak dan MEMILIH TEPAT 1 Klaster Stimulus Literasi dan TEPAT 1 Klaster Stimulus Numerasi. Siswa HANYA mengerjakan soal-soal dari 2 klaster terpilih tersebut.
+3. Mobile-Compatible Matching: Logika soal menjodohkan DILARANG menggunakan event HTML5 Drag-and-Drop. Gunakan logika "Click-to-Pair" (Klik item premis -> Item aktif/berwarna -> Klik item respon tujuan -> Pasangan terbentuk).
+4. State, Scoring, & Timer:
+   - Simpan jawaban siswa dalam state JavaScript.
+   - Hitung total skor otomatis saat "Selesaikan Ujian" ditekan atau Timer Habis.
+   - Tandai jawaban benar (Hijau) dan salah (Merah).
+5. UI Toggle Logic: Tuliskan fungsi JavaScript yang *clean* untuk melakukan *toggle* pada navigasi dan stimulus.
+6. Integrasi Google Apps Script (Spreadsheet):
+   - Buat variabel untuk melacak waktu mulai ujian (\`startTime\`) dan selesai ujian (\`timeTakenSeconds\`).
+   - Saat submit, buat fungsi asynchronous (\`fetch\`) mengirim POST request ke URL Web App GAS (\`const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';\`).
+   - Payload JSON yang dikirimkan WAJIB mencakup: \`id\`, \`created_at\`, \`playerName\`, \`playerSchool\`, \`score\`, \`level\`, \`gameTopic\`, \`timeTakenSeconds\`, \`gameType\`, \`game_id\`.
+   - Gunakan opsi \`mode: 'no-cors'\` pada fetch API.
+
+[STRICT OUTPUT CONSTRAINTS]
+1. Hasilkan SATU FILE LENGKAP dari \`<!DOCTYPE html>\` hingga \`</html>\`.
+2. DILARANG menggunakan placeholder, elipsis (...), atau memotong isi bank soal. KETIGA STIMULUS LITERASI, KETIGA STIMULUS NUMERASI, BESERTA SELURUH SOALNYA HARUS DITULISKAN SECARA LENGKAP di dalam kode JavaScript.`;
+            
+            } else if (currentMode === 'print') {
+                let totalStimulus = parseInt(document.getElementById('print-stimulus').value) || 4;
+                let soalPerStimulus = parseInt(document.getElementById('print-soal').value) || 5;
+                
+                totalStimulus = Math.min(Math.max(2, totalStimulus), 6);
+                if (totalStimulus % 2 !== 0) totalStimulus += 1;
+                if (totalStimulus > 6) totalStimulus = 6;
+                
+                document.getElementById('print-stimulus').value = totalStimulus;
+                const halfStimulus = totalStimulus / 2;
+                const totalSoal = totalStimulus * soalPerStimulus;
+
+                promptTemplate = `Bertindaklah sebagai Ahli Evaluasi Pendidikan ${jenjang} dan Penulis Soal Standar AKM. Buatkan instrumen asesmen sumatif untuk mata pelajaran ${topik} Kelas ${kelas}.
+
+Instruksi Khusus Penyusunan:
+
+1. DESAIN STIMULUS (WACANA):
+Buatkan ${totalStimulus} buah stimulus/wacana utama yang berbeda, dengan ketentuan:
+- ${halfStimulus} Stimulus Literasi Membaca: Berupa teks narasi, artikel, atau infografis deskriptif.
+- ${halfStimulus} Stimulus Numerasi: WAJIB memuat penyajian data (angka riil, persentase, tabel, atau grafik) yang memerlukan penalaran matematis.
+- Semua stimulus diintegrasikan dengan konteks lokal/wilayah: "${konteks}".
+
+2. DESAIN SOAL (ITEM TEST):
+Di bawah SETIAP stimulus, buatkan ${soalPerStimulus} butir soal turunan (total ${totalSoal} soal terklaster).
+
+3. VARIASI BENTUK SOAL & LEVEL KOGNITIF:
+Pastikan dalam ke-${totalSoal} soal tersebut mencakup variasi: Pilihan Ganda (1 jawaban benar), Pilihan Ganda Kompleks (lebih dari 1 jawaban benar), Benar/Salah, dan Menjodohkan.
+Distribusikan level kognitif: L1 (Pemahaman), L2 (Aplikasi), dan L3 (Penalaran/HOTS).
+*Tuliskan tag [Bentuk Soal] dan [Level Kognitif] di samping setiap nomor soal.*
+
+4. FORMAT & OUTPUT:
+Sajikan dalam teks format Markdown rapi agar mudah disalin ke Google Forms. Sertakan "KUNCI JAWABAN & PEMBAHASAN EDUKATIF" di bagian akhir.`;
+            
+            } else if (currentMode === 'image') {
+                const grade = `${jenjang} Kelas ${kelas}`;
+                const focus = document.getElementById('img-focus').value;
+                const density = document.getElementById('img-density').value;
+                const ratio = document.getElementById('img-ratio').value;
+                const elements = document.getElementById('img-elements').value.trim();
+                const language = document.getElementById('img-language').value;
+                const style = document.getElementById('img-style').value;
+
+                let orientationEn = "portrait";
+                let orientationId = "potret (vertikal)";
+                if (ratio === "1:1") { orientationEn = "square"; orientationId = "persegi"; } 
+                else if (ratio === "4:3" || ratio === "16:9") { orientationEn = "landscape"; orientationId = "lanskap (horizontal)"; }
+
+                let styleEn = "", styleId = "";
+                switch (style) {
+                    case "flat": styleEn = "flat vector illustrations suitable for education"; styleId = "gaya ilustrasi vektor datar (flat vector) yang cocok untuk pendidikan"; break;
+                    case "3d": styleEn = "high-quality 3D rendered style"; styleId = "gaya render 3D berkualitas tinggi"; break;
+                    case "watercolor": styleEn = "aesthetic watercolor painting style"; styleId = "gaya lukisan cat air (watercolor) yang estetik"; break;
+                    case "comic": styleEn = "fun comic book illustration style"; styleId = "gaya ilustrasi buku komik yang menyenangkan"; break;
+                    case "minimalist": styleEn = "clean corporate minimalist design"; styleId = "desain minimalis yang bersih dan rapi"; break;
+                    case "pixel": styleEn = "retro pixel art style"; styleId = "gaya seni piksel (pixel art) retro"; break;
+                }
+
+                if (language === 'english') {
+                    promptTemplate = `Create a high-quality educational infographic poster about "${topik}".\n`;
+                    promptTemplate += `Target audience: Students in ${grade} level.\n`;
+                    if (focus === "Literasi Informasi") { promptTemplate += `Educational Focus: Information Literacy (Concept explanation, process flow, and textual understanding).\n`; } 
+                    else { promptTemplate += `Educational Focus: Information Numeracy (Data interpretation, charts, statistics, and logical proportions).\n`; }
+                    promptTemplate += `Visual Composition: ${density.replace('Dominan Gambar', 'Image Dominant').replace('Seimbang', 'Balanced Layout').replace('Dominan Teks/Angka', 'Text and Data Dominant')}.\n`;
+                    if (elements) { promptTemplate += `Mandatory elements to include: ${elements}\n`; }
+                    promptTemplate += `Style Guidelines: Clean professional educational layout, clear and legible typography, vibrant but harmonious color palette, ${styleEn}. Ensure all text in the image is well-placed and readable. Aspect ratio and orientation should be ${orientationEn}.`;
+                } else {
+                    promptTemplate = `Buatkan desain poster infografik edukasi berkualitas tinggi tentang topik "${topik}".\n`;
+                    promptTemplate += `Target audiens: Siswa ${grade}.\n`;
+                    promptTemplate += `Fokus Edukasi: ${focus}.\n`;
+                    promptTemplate += `Kepadatan Visual: ${density}.\n`;
+                    if (elements) { promptTemplate += `Elemen wajib yang harus ada: ${elements}\n`; }
+                    promptTemplate += `Gaya Desain: Layout edukasi profesional yang rapi, tipografi yang jelas dan mudah dibaca, palet warna yang harmonis, menggunakan ${styleId}. Pastikan teks pada gambar tertata baik dan proporsional dengan orientasi ${orientationId}.`;
+                }
+            }
+
+            document.getElementById('output-prompt').value = promptTemplate;
+
+            // Visual Flash Effect pada kotak hasil untuk memberi tahu bahwa text telah diupdate
+            const promptContainer = document.getElementById('prompt-container');
+            if(promptContainer) {
+                promptContainer.classList.add('bg-slate-700', 'border-indigo-500');
+                setTimeout(() => {
+                    promptContainer.classList.remove('bg-slate-700', 'border-indigo-500');
+                }, 300);
+            }
+        }
+
+        // Fungsi khusus untuk tombol "Generate Prompt" di Header
+        function triggerManualGenerate() {
+            generatePrompt();
+            
+            // Animasi scroll otomatis ke bawah (berguna untuk pengguna HP)
+            if (window.innerWidth < 768) {
+                const outputSection = document.getElementById('prompt-container');
+                outputSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            showToast("Prompt diperbarui! ✨");
+        }
+
+        function copyPrompt() {
+            const outputTextarea = document.getElementById('output-prompt');
+            if (outputTextarea.value.trim() === '') return;
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(outputTextarea.value).then(() => { showToast("Prompt berhasil disalin! 📋"); })
+                .catch(err => { fallbackCopyText(outputTextarea); });
+            } else {
+                fallbackCopyText(outputTextarea);
+            }
+        }
+
+        function fallbackCopyText(textArea) {
+            textArea.select();
+            document.execCommand('copy');
+            showToast("Prompt berhasil disalin! 📋");
+            window.getSelection().removeAllRanges();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.className = "show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // Event Listeners for real-time generation
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('input', generatePrompt);
+            if(input.id === 'jenjang') {
+                input.addEventListener('change', () => {
+                    updateKelasOptions();
+                    generatePrompt();
+                });
+            }
+        });
+
+    </script>
+</body>
+</html>
